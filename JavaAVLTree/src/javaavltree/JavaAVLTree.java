@@ -48,7 +48,7 @@ public class JavaAVLTree {
                 if (root.getLeft() == null) {
                     root.setLeft(newNode);
                     newNode.setParent(root);
-                    fixBalanceValues(newNode, root, -1);
+                    fixBalanceValues(root, -1);
                 } else {
                     addNode(root.getLeft(), newNode);
                 }
@@ -58,19 +58,80 @@ public class JavaAVLTree {
                 if (root.getRight() == null) {
                     root.setRight(newNode);
                     newNode.setParent(root);
-                    fixBalanceValues(newNode, root, 1);
+                    fixBalanceValues(root, 1);
                 } else {
                     addNode(root.getRight(), newNode);
                 }
 
         }
     }
-
+    /*
+    Calls findNode to find the node to delete and then swaps that nodes value with it's right childs leftmost descendent or itself if it has no left children.
+    root refers to the root of the entire tree not a subtree in this instance.
+    */
+    private void deleteNode(Cat valueToDelete, Node root){
+        Node temp = findNode(valueToDelete, root);
+        if(temp.getRight()==null){
+           Node parent = temp.getParent();
+           if(temp.getLeft()==null){
+               temp.setParent(null);
+               if(temp==parent.getRight()){
+                   parent.setRight(null);
+                   fixBalanceValues(parent,-1);
+               }
+               else{
+                   parent.setLeft(null);
+                   fixBalanceValues(parent,1);
+               }
+               
+           }
+           else{
+               //copy value of leftchild into the node to deletes data and delete it's leftchild
+               temp.setData(temp.getLeft().getData());
+               temp.setLeft(null);
+               fixBalanceValues(temp, 1);
+           }
+        }
+        Node nodeToDelete = temp.getRight();
+        if(nodeToDelete.getLeft()==null){
+            temp.setData(nodeToDelete.getData());
+            temp.setRight(null);
+            nodeToDelete.setParent(null);
+            fixBalanceValues(temp,-1);
+        }
+        else{
+            while(nodeToDelete.getLeft()!=null){
+            nodeToDelete=nodeToDelete.getLeft();    
+        } 
+            temp.setData(nodeToDelete.getData());
+            Node parent = nodeToDelete.getParent();
+            parent.setLeft(null);
+            nodeToDelete.setParent(null);
+            fixBalanceValues(parent,1);
+        }
+        
+    
+    }
+    private Node findNode(Cat valueToFind, Node root){
+        while(root.getData().compareTo(valueToFind)!=0){
+            if(root.getData().compareTo(valueToFind)==1){
+                root=root.getRight();
+            }
+            else{//root<valueToFind
+                root=root.getLeft();
+            }
+            if(root==null){
+                return root;
+            }
+        }
+        return root;
+    }
     /*
     Because values(objects) are passed by reference if root is the root of the entire tree the correct elemetn will always occupy the correct place
+    This will not rebalance a horrendously misbalanced tree it is dependent on the tree being rebalanced after every insert/deletion
     @param balanceAdjustment the amount parents balance will be adjusted based on the side the node is added to
      */
-    private void fixBalanceValues(Node newNode, Node root, int balanceAdjustment) {
+    private void fixBalanceValues(Node root, int balanceAdjustment) {
         root.setBalanceFactor(root.getBalanceFactor() + balanceAdjustment);
         //if balance is zero it's balanced we don't have to do anything
         //if it's -2 or 2 we have found where the imbalance occurs and now must correct it
